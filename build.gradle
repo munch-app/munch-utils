@@ -1,0 +1,107 @@
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java'
+    apply plugin: "com.jfrog.artifactory"
+    apply plugin: 'maven-publish'
+
+    group 'com.munch'
+    version '1.0.0-SNAPSHOT'
+
+    repositories {
+        maven {
+            url 'http://artifactory.fxloh.com/artifactory/plugins-release'
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+        mavenCentral()
+        maven {
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+            url "http://artifactory.fxloh.com/artifactory/munch"
+        }
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact(sourcesJar) {
+                    classifier = 'sources'
+                }
+            }
+        }
+    }
+
+    dependencies {
+        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.0-M2'
+        testCompile group: 'org.easytesting', name: 'fest-assert', version: '1.4'
+    }
+
+    task publishLib {
+        dependsOn 'build'
+        dependsOn 'artifactoryPublish'
+        tasks.findByName('artifactoryPublish').mustRunAfter 'build'
+    }
+}
+
+dependencies {
+    compile group: 'com.google.code.findbugs', name: 'annotations', version: '3.0.1u2' // Debugging
+
+    // Basic
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7' // Logging
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+    compile group: 'commons-io', name: 'commons-io', version: '2.5'
+}
+
+buildscript {
+    repositories {
+        maven {
+            url 'http://artifactory.fxloh.com/artifactory/plugins-release'
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+    }
+    dependencies {
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+    }
+}
+
+artifactory {
+    contextUrl = "${artifactory_contextUrl}"   //The base Artifactory URL if not overridden by the publisher/resolver
+    publish {
+        repository {
+            repoKey = 'munch'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+
+        }
+        defaults {
+            publications('mavenJava')
+        }
+    }
+    resolve {
+        repository {
+            repoKey = 'libs-release'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+
+        }
+    }
+}
