@@ -15,7 +15,18 @@ import static org.apache.tika.mime.MimeTypes.OCTET_STREAM;
  */
 public class FileTypeUtils {
 
-    private static final Tika tika = new Tika();
+    private static Tika tika;
+
+    private static Tika getTika() {
+        if (tika == null){
+            synchronized (FileTypeUtils.class){
+                if (tika == null){
+                    tika = new Tika();
+                }
+            }
+        }
+        return tika;
+    }
 
     /**
      * Get content type from file name
@@ -24,22 +35,22 @@ public class FileTypeUtils {
      * @return content type
      */
     public static String getContentType(String filename) {
-        return tika.detect(filename);
+        return getTika().detect(filename);
     }
 
-    public static String getContentType(File file) throws ContentTypeException {
+    public static String getContentType(File file) throws ContentTypeError {
         try {
-            return tika.detect(file);
+            return getTika().detect(file);
         } catch (IOException e) {
-            throw new ContentTypeException(e);
+            throw new ContentTypeError(e);
         }
     }
 
-    public static String getContentType(byte[] bytes) throws ContentTypeException {
-        return tika.detect(bytes);
+    public static String getContentType(byte[] bytes) throws ContentTypeError {
+        return getTika().detect(bytes);
     }
 
-    public static String getContentType(String filename, File file) throws ContentTypeException {
+    public static String getContentType(String filename, File file) throws ContentTypeError {
         String type = getContentType(filename);
         if (type.equalsIgnoreCase(OCTET_STREAM)) {
             type = getContentType(file);
@@ -47,7 +58,7 @@ public class FileTypeUtils {
         return type;
     }
 
-    public static String getContentType(String filename, byte[] bytes) throws ContentTypeException {
+    public static String getContentType(String filename, byte[] bytes) throws ContentTypeError {
         String type = getContentType(filename);
         if (type.equalsIgnoreCase(OCTET_STREAM)) {
             type = getContentType(bytes);

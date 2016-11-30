@@ -6,12 +6,12 @@ package com.munch.utils.file;
  * Time: 8:10 PM
  * Project: essential
  */
-public class ContentTypeException extends Exception {
+public class ContentTypeError extends Exception {
 
     /**
      * Content-Type not found
      */
-    public ContentTypeException(Throwable cause) {
+    public ContentTypeError(Throwable cause) {
         super(cause);
     }
 

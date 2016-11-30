@@ -1,7 +1,5 @@
-ext.amazonawsVersion = '1.11.56'
-
 dependencies {
     compile project(":munch-block")
     // AWS
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: amazonawsVersion
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.56'
 }
