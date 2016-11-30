@@ -1,3 +1,0 @@
-dependencies {
-    compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.1'
-}

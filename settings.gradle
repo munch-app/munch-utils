@@ -1,5 +1,5 @@
 rootProject.name = 'munch-utils'
 
 include 'munch-block'
-include 'munch-config'
+include 'munch-block-aws'
 

@@ -13,7 +13,7 @@ import static org.apache.tika.mime.MimeTypes.OCTET_STREAM;
  * Time: 6:40 PM
  * Project: essential
  */
-public class FileMapperUtils {
+public class FileTypeUtils {
 
     private static final Tika tika = new Tika();
 

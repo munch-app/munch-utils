@@ -8,9 +8,9 @@ import com.google.gson.Gson;
  * Time: 1:07 AM
  * Project: essential
  */
-public class GsonConverter implements JsonConverter {
+public class GsonConverter implements BlockConverter {
 
-    // Gson Version: 2.7
+    // Gson Version: 2.8.0
     protected final Gson gson;
 
     public GsonConverter(Gson gson) {

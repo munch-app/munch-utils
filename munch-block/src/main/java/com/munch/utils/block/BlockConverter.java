@@ -6,7 +6,7 @@ package com.munch.utils.block;
  * Time: 12:54 AM
  * Project: struct
  */
-public interface JsonConverter {
+public interface BlockConverter {
 
     String toJson(Object object);
 

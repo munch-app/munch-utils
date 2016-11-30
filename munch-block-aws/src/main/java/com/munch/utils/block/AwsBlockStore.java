@@ -8,12 +8,12 @@ import com.amazonaws.services.s3.AmazonS3;
  * Time: 1:16 AM
  * Project: essential
  */
-public class AwsPersistClient implements PersistClient {
+public class AwsBlockStore implements BlockStore {
 
     protected final String bucketName;
     protected final AmazonS3 amazonS3;
 
-    public AwsPersistClient(String bucketName, AmazonS3 amazonS3) {
+    public AwsBlockStore(String bucketName, AmazonS3 amazonS3) {
         this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
     }

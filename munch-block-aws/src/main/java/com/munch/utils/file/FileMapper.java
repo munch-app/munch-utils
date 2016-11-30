@@ -86,7 +86,7 @@ public class FileMapper {
         if (metadata == null) {
             metadata = new ObjectMetadata();
         }
-        metadata.setContentType(FileMapperUtils.getContentType(keyId, file));
+        metadata.setContentType(FileTypeUtils.getContentType(keyId, file));
         metadata.setContentDisposition("inline"); // For Browser to display
         request.withMetadata(metadata);
 

@@ -6,8 +6,13 @@ package com.munch.utils.block;
  * Time: 1:11 AM
  * Project: essential
  */
-public interface PersistClient {
+public interface BlockStore {
 
+    /**
+     * Save to store with unique key and content
+     * @param key unique key
+     * @param content content in string
+     */
     void save(String key, String content);
 
     String load(String key);

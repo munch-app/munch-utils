@@ -8,7 +8,7 @@ import com.google.gson.JsonObject;
  * Time: 8:31 AM
  * Project: essential
  */
-public abstract class BlockMigration<B extends BlockVersion> {
+public abstract class BlockMigration<B extends VersionedBlock> {
 
     private final int latestVersion;
 

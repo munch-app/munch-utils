@@ -6,19 +6,26 @@ package com.munch.utils.block;
  * Time: 2:20 AM
  * Project: struct
  */
-public abstract class BlockVersion {
+public abstract class VersionedBlock implements KeyBlock {
 
     public static final int VERSION_FIRST = 1;
 
     private int version;
 
     /**
+     * version set to VERSION_FIRST
+     */
+    public VersionedBlock() {
+        this(VERSION_FIRST);
+    }
+
+    /**
      * All data should be named with the version that is introduced
      * For data not named, it is there since VERSION_FIRST
      *
-     * @param version version of block
+     * @param version number of the block
      */
-    public BlockVersion(int version) {
+    public VersionedBlock(int version) {
         this.version = version;
     }
 
