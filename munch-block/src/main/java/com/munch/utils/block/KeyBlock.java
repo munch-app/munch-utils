@@ -9,6 +9,8 @@ package com.munch.utils.block;
 public interface KeyBlock {
 
     /**
+     * If no preference, use this method
+     *
      * @return key of block
      */
     default String getKey() {

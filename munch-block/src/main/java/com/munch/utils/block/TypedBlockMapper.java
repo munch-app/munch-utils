@@ -55,7 +55,7 @@ public class TypedBlockMapper<B extends KeyBlock> implements BlockMapper<B> {
     }
 
     @Override
-    public void delete(String key) {
+    public void remove(String key) {
         blockStoreMapper.remove(key);
     }
 
