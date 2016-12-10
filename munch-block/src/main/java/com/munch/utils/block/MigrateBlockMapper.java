@@ -3,6 +3,8 @@ package com.munch.utils.block;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import java.util.Iterator;
+
 /**
  * Created by: Fuxing
  * Date: 17/10/2016
@@ -51,5 +53,33 @@ public class MigrateBlockMapper<T extends VersionedBlock> extends TypedBlockMapp
     protected JsonElement loadAsJsonElement(String key) {
         String json = blockStoreMapper.store.load(key);
         return jsonParser.parse(json);
+    }
+
+    public Iterator<T> iterator(Class<T> clazz) {
+        return new BlockIterator(clazz, blockStoreMapper.store.iterator());
+    }
+
+    private class BlockIterator implements Iterator<T> {
+
+        private final Class<T> clazz;
+        private final Iterator<String> iterator;
+
+        public BlockIterator(Class<T> clazz, Iterator<String> iterator) {
+            this.clazz = clazz;
+            this.iterator = iterator;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public T next() {
+            JsonElement element = jsonParser.parse(iterator.next());
+            blockMigrate.incrementalUpdate(element.getAsJsonObject());
+            return gsonConverter.getGson().fromJson(element, clazz);
+        }
+
     }
 }

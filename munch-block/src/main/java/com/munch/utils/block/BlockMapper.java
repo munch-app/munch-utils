@@ -1,5 +1,7 @@
 package com.munch.utils.block;
 
+import java.util.Iterator;
+
 /**
  * Created by: Fuxing
  * Date: 30/11/2016
@@ -19,4 +21,7 @@ public interface BlockMapper<B extends KeyBlock> {
      */
     B load(String key);
 
+    void delete(String key);
+
+    Iterator<B> iterator();
 }

@@ -25,4 +25,5 @@ public class AwsTypedBlockMapper<B extends KeyBlock> extends TypedBlockMapper<B>
     public AwsTypedBlockMapper(Class<B> clazz, BlockStoreMapper blockStoreMapper) {
         super(clazz, blockStoreMapper);
     }
+
 }

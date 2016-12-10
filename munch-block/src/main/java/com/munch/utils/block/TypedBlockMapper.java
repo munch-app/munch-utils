@@ -1,5 +1,7 @@
 package com.munch.utils.block;
 
+import java.util.Iterator;
+
 /**
  * Created by: Fuxing
  * Date: 24/9/2016
@@ -50,6 +52,16 @@ public class TypedBlockMapper<B extends KeyBlock> implements BlockMapper<B> {
     @Override
     public B load(String key) {
         return blockStoreMapper.load(clazz, key);
+    }
+
+    @Override
+    public void delete(String key) {
+        blockStoreMapper.remove(key);
+    }
+
+    @Override
+    public Iterator<B> iterator() {
+        return blockStoreMapper.iterator(clazz);
     }
 
 }
