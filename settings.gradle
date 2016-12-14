@@ -2,4 +2,5 @@ rootProject.name = 'munch-utils'
 
 include 'munch-block'
 include 'munch-block-aws'
+include 'hibernate-utils'
 
