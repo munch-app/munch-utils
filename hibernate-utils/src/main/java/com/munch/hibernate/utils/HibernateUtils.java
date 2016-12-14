@@ -14,14 +14,14 @@ import java.util.Optional;
  * Time: 5:49 PM
  * Project: PuffinCore
  */
-public final class HibernateUtil {
+public final class HibernateUtils {
     private static EntityManagerFactory entityManagerFactory = null;
 
-    private HibernateUtil() {/* NOT Suppose to init */}
+    private HibernateUtils() {/* NOT Suppose to init */}
 
     public static void setupFactory(Map<String, String> properties) {
         if (entityManagerFactory == null) {
-            synchronized (HibernateUtil.class) {
+            synchronized (HibernateUtils.class) {
                 if (entityManagerFactory == null) {
                     entityManagerFactory = Persistence.createEntityManagerFactory("defaultPersistenceUnit", properties);
                     return;
@@ -67,7 +67,7 @@ public final class HibernateUtil {
      */
     public static void shutdown() {
         if (entityManagerFactory != null) {
-            synchronized (HibernateUtil.class) {
+            synchronized (HibernateUtils.class) {
                 if (entityManagerFactory != null) {
                     getEntityFactory().close();
                     entityManagerFactory = null;

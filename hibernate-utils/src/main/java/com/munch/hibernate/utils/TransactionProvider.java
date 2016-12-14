@@ -45,7 +45,7 @@ public class TransactionProvider {
      */
     public void with(Transaction transaction) {
         // Create and start
-        EntityManager entityManager = HibernateUtil.createEntityManager();
+        EntityManager entityManager = HibernateUtils.createEntityManager();
         try {
             entityManager.getTransaction().begin();
             // Run
@@ -72,7 +72,7 @@ public class TransactionProvider {
     public <T> T reduce(ReduceTransaction<T> reduceTransaction) {
         T object;
         // Create and start
-        EntityManager entityManager = HibernateUtil.createEntityManager();
+        EntityManager entityManager = HibernateUtils.createEntityManager();
         try {
             entityManager.getTransaction().begin();
             // Run
