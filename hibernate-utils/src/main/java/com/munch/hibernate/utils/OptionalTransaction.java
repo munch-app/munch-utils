@@ -2,6 +2,7 @@ package com.munch.hibernate.utils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import java.util.function.Function;
 
 /**
  * Created by: Fuxing
@@ -10,6 +11,6 @@ import javax.persistence.NoResultException;
  * Project: munch-utils
  */
 @FunctionalInterface
-public interface OptionalTransaction<T> {
-    T run(EntityManager em) throws NoResultException;
+public interface OptionalTransaction<T> extends Function<EntityManager, T> {
+    T apply(EntityManager em) throws NoResultException;
 }

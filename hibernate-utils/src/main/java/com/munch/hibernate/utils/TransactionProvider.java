@@ -41,7 +41,7 @@ public class TransactionProvider {
     /**
      * Run jpa style transaction in functional style
      *
-     * @param transaction transaction to run
+     * @param transaction transaction to apply
      */
     public void with(Transaction transaction) {
         // Create and start
@@ -49,7 +49,7 @@ public class TransactionProvider {
         try {
             entityManager.getTransaction().begin();
             // Run
-            transaction.run(entityManager);
+            transaction.accept(entityManager);
             // Close
             entityManager.getTransaction().commit();
         } catch (Exception e) {
@@ -65,7 +65,7 @@ public class TransactionProvider {
     /**
      * Run jpa style transaction in functional style with reduce
      *
-     * @param reduceTransaction reduce transaction to run
+     * @param reduceTransaction reduce transaction to apply
      * @param <T>               type of object
      * @return object
      */
@@ -76,7 +76,7 @@ public class TransactionProvider {
         try {
             entityManager.getTransaction().begin();
             // Run
-            object = reduceTransaction.run(entityManager);
+            object = reduceTransaction.apply(entityManager);
             // Close
             entityManager.getTransaction().commit();
         } catch (Exception e) {
@@ -96,14 +96,14 @@ public class TransactionProvider {
      * catch NoResultException and convert it to Optional.empty()
      * Using the default transaction provider
      *
-     * @param optionalTransaction reduce transaction to run that with convert to optional
+     * @param optionalTransaction reduce transaction to apply that with convert to optional
      * @param <T>                 type of object
      * @return object
      */
     public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
         return reduce(em -> {
             try {
-                return Optional.of(optionalTransaction.run(em));
+                return Optional.of(optionalTransaction.apply(em));
             } catch (NoResultException e) {
                 return Optional.empty();
             }

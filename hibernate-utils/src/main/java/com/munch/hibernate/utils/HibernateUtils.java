@@ -80,7 +80,7 @@ public final class HibernateUtils {
      * Run jpa style transaction in functional style
      * Using the default transaction provider
      *
-     * @param transaction transaction to run
+     * @param transaction transaction to apply
      */
     public static void with(Transaction transaction) {
         TransactionProvider.getProvider().with(transaction);
@@ -90,7 +90,7 @@ public final class HibernateUtils {
      * Run jpa style transaction in functional style with reduce
      * Using the default transaction provider
      *
-     * @param reduceTransaction reduce transaction to run
+     * @param reduceTransaction reduce transaction to apply
      * @param <T>               type of object
      * @return object
      */
@@ -104,7 +104,7 @@ public final class HibernateUtils {
      * catch NoResultException and convert it to Optional.empty()
      * Using the default transaction provider
      *
-     * @param optionalTransaction reduce transaction to run that with convert to optional
+     * @param optionalTransaction reduce transaction to apply that with convert to optional
      * @param <T>                 type of object
      * @return object
      */

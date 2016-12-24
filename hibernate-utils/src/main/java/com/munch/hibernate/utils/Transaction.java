@@ -1,6 +1,7 @@
 package com.munch.hibernate.utils;
 
 import javax.persistence.EntityManager;
+import java.util.function.Consumer;
 
 /**
  * Created by: Fuxing
@@ -9,6 +10,6 @@ import javax.persistence.EntityManager;
  * Project: munch-utils
  */
 @FunctionalInterface
-public interface Transaction {
-    void run(EntityManager em);
+public interface Transaction extends Consumer<EntityManager> {
+    void accept(EntityManager em);
 }

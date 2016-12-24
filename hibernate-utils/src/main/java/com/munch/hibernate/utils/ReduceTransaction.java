@@ -1,6 +1,7 @@
 package com.munch.hibernate.utils;
 
 import javax.persistence.EntityManager;
+import java.util.function.Function;
 
 /**
  * Created by: Fuxing
@@ -9,6 +10,6 @@ import javax.persistence.EntityManager;
  * Project: munch-utils
  */
 @FunctionalInterface
-public interface ReduceTransaction<T> {
-    T run(EntityManager em);
+public interface ReduceTransaction<T> extends Function<EntityManager, T> {
+    T apply(EntityManager em);
 }
