@@ -2,8 +2,8 @@
 package com.munch.hibernate.utils;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Created by Fuxing
@@ -101,12 +101,10 @@ public class TransactionProvider {
      * @return object
      */
     public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
-        return reduce(em -> {
-            try {
-                return Optional.of(optionalTransaction.apply(em));
-            } catch (NoResultException e) {
-                return Optional.empty();
-            }
-        });
+        return reduce(optionalTransaction::optional);
+    }
+
+    public <T, U> Optional<U> mapper(OptionalTransaction<T> optionalTransaction, Function<? super T, ? extends U> mapper) {
+        return reduce(em -> optionalTransaction.optional(em).map(mapper));
     }
 }

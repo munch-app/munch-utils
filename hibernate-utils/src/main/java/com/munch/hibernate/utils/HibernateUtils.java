@@ -5,6 +5,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Thread-Safe Singleton Hibernate Util
@@ -110,6 +111,10 @@ public final class HibernateUtils {
      */
     public static <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
         return TransactionProvider.getProvider().optional(optionalTransaction);
+    }
+
+    public static <T, U> Optional<U> mapper(OptionalTransaction<T> optionalTransaction, Function<? super T, ? extends U> mapper) {
+        return TransactionProvider.getProvider().mapper(optionalTransaction, mapper);
     }
 }
 
