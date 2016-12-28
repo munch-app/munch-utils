@@ -37,9 +37,9 @@ public final class HibernateUtils {
      * @param properties nullable properties for overriding
      */
     public static void setupFactory(String unitName, Map<String, String> properties) {
-        if (providers.containsKey(unitName)) {
+        if (!providers.containsKey(unitName)) {
             synchronized (HibernateUtils.class) {
-                if (providers.containsKey(unitName)) {
+                if (!providers.containsKey(unitName)) {
                     EntityManagerFactory factory = Persistence.createEntityManagerFactory(unitName, properties);
                     providers.put(unitName, new TransactionProvider(factory));
                     return;
