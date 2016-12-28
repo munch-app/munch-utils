@@ -2,6 +2,7 @@
 package com.munch.hibernate.utils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -13,29 +14,14 @@ import java.util.function.Function;
  */
 public class TransactionProvider {
 
-    private static TransactionProvider provider = new TransactionProvider();
+    private EntityManagerFactory factory;
 
-    /**
-     * @return get the current provider
-     */
-    public static TransactionProvider getProvider() {
-        if (provider == null) {
-            synchronized (TransactionProvider.class) {
-                if (provider == null) {
-                    provider = new TransactionProvider();
-                }
-            }
-        }
-        return provider;
+    public TransactionProvider(EntityManagerFactory factory) {
+        this.factory = factory;
     }
 
-    /**
-     * @param provider provider to override with
-     */
-    public static void setProvider(TransactionProvider provider) {
-        synchronized (TransactionProvider.class) {
-            TransactionProvider.provider = provider;
-        }
+    public EntityManagerFactory getFactory() {
+        return factory;
     }
 
     /**
@@ -45,7 +31,7 @@ public class TransactionProvider {
      */
     public void with(Transaction transaction) {
         // Create and start
-        EntityManager entityManager = HibernateUtils.createEntityManager();
+        EntityManager entityManager = factory.createEntityManager();
         try {
             entityManager.getTransaction().begin();
             // Run
@@ -72,7 +58,7 @@ public class TransactionProvider {
     public <T> T reduce(ReduceTransaction<T> reduceTransaction) {
         T object;
         // Create and start
-        EntityManager entityManager = HibernateUtils.createEntityManager();
+        EntityManager entityManager = factory.createEntityManager();
         try {
             entityManager.getTransaction().begin();
             // Run

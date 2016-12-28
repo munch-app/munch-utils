@@ -1,10 +1,8 @@
 package com.munch.hibernate.utils;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -16,15 +14,34 @@ import java.util.function.Function;
  * Project: PuffinCore
  */
 public final class HibernateUtils {
-    private static EntityManagerFactory entityManagerFactory = null;
+
+    private static Map<String, TransactionProvider> providers = new HashMap<>();
+    private static TransactionProvider defaultTransaction = null;
+
+    public static final String DEFAULT_PERSISTENCE_UNIT = "defaultPersistenceUnit";
 
     private HibernateUtils() {/* NOT Suppose to init */}
 
+    /**
+     * @param properties nullable properties for overriding
+     */
     public static void setupFactory(Map<String, String> properties) {
-        if (entityManagerFactory == null) {
+        setupFactory(DEFAULT_PERSISTENCE_UNIT, properties);
+        synchronized (HibernateUtils.class) {
+            defaultTransaction = providers.get(DEFAULT_PERSISTENCE_UNIT);
+        }
+    }
+
+    /**
+     * @param unitName   persistence unit name
+     * @param properties nullable properties for overriding
+     */
+    public static void setupFactory(String unitName, Map<String, String> properties) {
+        if (providers.containsKey(unitName)) {
             synchronized (HibernateUtils.class) {
-                if (entityManagerFactory == null) {
-                    entityManagerFactory = Persistence.createEntityManagerFactory("defaultPersistenceUnit", properties);
+                if (providers.containsKey(unitName)) {
+                    EntityManagerFactory factory = Persistence.createEntityManagerFactory(unitName, properties);
+                    providers.put(unitName, new TransactionProvider(factory));
                     return;
                 }
             }
@@ -33,48 +50,43 @@ public final class HibernateUtils {
     }
 
     /**
-     * Thread-Safe Create
-     *
-     * @return EntityFactory Singleton
-     */
-    private static EntityManagerFactory getEntityInstance() {
-        if (entityManagerFactory == null) {
-            setupFactory(null);
-        }
-        return entityManagerFactory;
-    }
-
-    /**
-     * Get a entity factory
-     *
-     * @return EntityFactory Singleton
-     */
-    public static EntityManagerFactory getEntityFactory() {
-        return getEntityInstance();
-    }
-
-    /**
-     * Build a entity manager from the existing factory
-     *
-     * @return EntityManager
-     */
-    public static EntityManager createEntityManager() {
-        return getEntityFactory().createEntityManager();
-    }
-
-    /**
-     * Shutdown the instance
+     * Shutdown the default instance
      * Thread-safe
      */
     public static void shutdown() {
-        if (entityManagerFactory != null) {
+        shutdown(DEFAULT_PERSISTENCE_UNIT);
+        synchronized (HibernateUtils.class) {
+            defaultTransaction = null;
+        }
+    }
+
+    /**
+     * Shutdown the default instance
+     * Thread-safe
+     */
+    public static void shutdown(String unitName) {
+        if (providers.containsKey(unitName)) {
             synchronized (HibernateUtils.class) {
-                if (entityManagerFactory != null) {
-                    getEntityFactory().close();
-                    entityManagerFactory = null;
+                if (providers.containsKey(unitName)) {
+                    providers.remove(unitName).getFactory().close();
                 }
             }
         }
+    }
+
+    /**
+     * @param unitName persistence unit name
+     * @return TransactionProvider of unit
+     */
+    public static TransactionProvider get(String unitName) {
+        return providers.get(unitName);
+    }
+
+    /**
+     * @return default TransactionProvider
+     */
+    public static TransactionProvider get() {
+        return defaultTransaction;
     }
 
     /**
@@ -84,7 +96,7 @@ public final class HibernateUtils {
      * @param transaction transaction to apply
      */
     public static void with(Transaction transaction) {
-        TransactionProvider.getProvider().with(transaction);
+        defaultTransaction.with(transaction);
     }
 
     /**
@@ -96,7 +108,7 @@ public final class HibernateUtils {
      * @return object
      */
     public static <T> T reduce(ReduceTransaction<T> reduceTransaction) {
-        return TransactionProvider.getProvider().reduce(reduceTransaction);
+        return defaultTransaction.reduce(reduceTransaction);
     }
 
     /**
@@ -110,11 +122,11 @@ public final class HibernateUtils {
      * @return object
      */
     public static <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
-        return TransactionProvider.getProvider().optional(optionalTransaction);
+        return defaultTransaction.optional(optionalTransaction);
     }
 
     public static <T, U> Optional<U> mapper(OptionalTransaction<T> optionalTransaction, Function<? super T, ? extends U> mapper) {
-        return TransactionProvider.getProvider().mapper(optionalTransaction, mapper);
+        return defaultTransaction.mapper(optionalTransaction, mapper);
     }
 }
 
