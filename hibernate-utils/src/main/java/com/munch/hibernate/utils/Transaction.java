@@ -10,6 +10,11 @@ import java.util.function.Consumer;
  * Project: munch-utils
  */
 @FunctionalInterface
-public interface Transaction extends Consumer<EntityManager> {
+public interface Transaction extends Consumer<EntityManager>, TransactionError {
     void accept(EntityManager em);
+
+    default boolean error(Exception e) {
+        return true;
+    }
+
 }

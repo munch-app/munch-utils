@@ -10,6 +10,11 @@ import java.util.function.Function;
  * Project: munch-utils
  */
 @FunctionalInterface
-public interface ReduceTransaction<T> extends Function<EntityManager, T> {
+public interface ReduceTransaction<T> extends Function<EntityManager, T>, TransactionError{
     T apply(EntityManager em);
+
+    default boolean error(Exception e) {
+        return true;
+    }
+
 }

@@ -24,12 +24,16 @@ public class TransactionProvider {
         return factory;
     }
 
+    public void with(Transaction transaction) {
+        with(transaction, transaction);
+    }
+
     /**
      * Run jpa style transaction in functional style
      *
      * @param transaction transaction to apply
      */
-    public void with(Transaction transaction) {
+    public void with(Transaction transaction, TransactionError error) {
         // Create and start
         EntityManager entityManager = factory.createEntityManager();
         try {
@@ -42,10 +46,18 @@ public class TransactionProvider {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
-            throw e;
+
+            // Transaction Error
+            if (error.error(e)) {
+                throw e;
+            }
         } finally {
             entityManager.close();
         }
+    }
+
+    public <T> T reduce(ReduceTransaction<T> reduceTransaction) {
+        return reduce(reduceTransaction, reduceTransaction);
     }
 
     /**
@@ -55,8 +67,8 @@ public class TransactionProvider {
      * @param <T>               type of object
      * @return object
      */
-    public <T> T reduce(ReduceTransaction<T> reduceTransaction) {
-        T object;
+    public <T> T reduce(ReduceTransaction<T> reduceTransaction, TransactionError error) {
+        T object = null;
         // Create and start
         EntityManager entityManager = factory.createEntityManager();
         try {
@@ -69,11 +81,20 @@ public class TransactionProvider {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
-            throw e;
+
+            // Transaction Error
+            if (error.error(e)) {
+                throw e;
+            }
         } finally {
             entityManager.close();
         }
         return object;
+    }
+
+
+    public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
+        return reduce(optionalTransaction::optional, optionalTransaction);
     }
 
     /**
@@ -86,11 +107,15 @@ public class TransactionProvider {
      * @param <T>                 type of object
      * @return object
      */
-    public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
-        return reduce(optionalTransaction::optional);
+    public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction, TransactionError error) {
+        return reduce(optionalTransaction::optional, error);
     }
 
     public <T, U> Optional<U> mapper(OptionalTransaction<T> optionalTransaction, Function<? super T, ? extends U> mapper) {
-        return reduce(em -> optionalTransaction.optional(em).map(mapper));
+        return reduce(em -> optionalTransaction.optional(em).map(mapper), optionalTransaction);
+    }
+
+    public <T, U> Optional<U> mapper(OptionalTransaction<T> optionalTransaction, TransactionError error, Function<? super T, ? extends U> mapper) {
+        return reduce(em -> optionalTransaction.optional(em).map(mapper), error);
     }
 }

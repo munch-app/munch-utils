@@ -12,7 +12,7 @@ import java.util.function.Function;
  * Project: munch-utils
  */
 @FunctionalInterface
-public interface OptionalTransaction<T> extends Function<EntityManager, T> {
+public interface OptionalTransaction<T> extends Function<EntityManager, T>, TransactionError {
     T apply(EntityManager em) throws NoResultException;
 
     /**
@@ -31,4 +31,9 @@ public interface OptionalTransaction<T> extends Function<EntityManager, T> {
     default <U> Optional<U> mapper(EntityManager em, Function<? super T, ? extends U> mapper) {
         return optional(em).map(mapper);
     }
+
+    default boolean error(Exception e) {
+        return true;
+    }
+
 }
