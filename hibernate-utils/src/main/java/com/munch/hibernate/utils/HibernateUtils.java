@@ -74,6 +74,13 @@ public final class HibernateUtils {
         }
     }
 
+    public static void shutdownAll() {
+        shutdown();
+        for (String unitName : providers.keySet()) {
+            shutdown(unitName);
+        }
+    }
+
     /**
      * @param unitName persistence unit name
      * @return TransactionProvider of unit
