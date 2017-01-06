@@ -2,8 +2,9 @@ package com.munch.hibernate.utils;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import java.util.*;
-import java.util.function.Function;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Thread-Safe Singleton Hibernate Util
@@ -14,11 +15,9 @@ import java.util.function.Function;
  * Project: PuffinCore
  */
 public final class HibernateUtils {
+    public static final String DEFAULT_PERSISTENCE_UNIT = "defaultPersistenceUnit";
 
     private static Map<String, TransactionProvider> providers = new HashMap<>();
-    private static TransactionProvider defaultTransaction = null;
-
-    public static final String DEFAULT_PERSISTENCE_UNIT = "defaultPersistenceUnit";
 
     private HibernateUtils() {/* NOT Suppose to init */}
 
@@ -27,9 +26,6 @@ public final class HibernateUtils {
      */
     public static void setupFactory(Map<String, String> properties) {
         setupFactory(DEFAULT_PERSISTENCE_UNIT, properties);
-        synchronized (HibernateUtils.class) {
-            defaultTransaction = providers.get(DEFAULT_PERSISTENCE_UNIT);
-        }
     }
 
     /**
@@ -55,9 +51,6 @@ public final class HibernateUtils {
      */
     public static void shutdown() {
         shutdown(DEFAULT_PERSISTENCE_UNIT);
-        synchronized (HibernateUtils.class) {
-            defaultTransaction = null;
-        }
     }
 
     /**
@@ -74,8 +67,10 @@ public final class HibernateUtils {
         }
     }
 
+    /**
+     * Shutdown all factory
+     */
     public static void shutdownAll() {
-        shutdown();
         for (String unitName : providers.keySet()) {
             shutdown(unitName);
         }
@@ -83,7 +78,7 @@ public final class HibernateUtils {
 
     /**
      * @param unitName persistence unit name
-     * @return TransactionProvider of unit
+     * @return TransactionProvider of unit, null if don't exist
      */
     public static TransactionProvider get(String unitName) {
         return providers.get(unitName);
@@ -93,17 +88,16 @@ public final class HibernateUtils {
      * @return default TransactionProvider
      */
     public static TransactionProvider get() {
-        return defaultTransaction;
+        return get(DEFAULT_PERSISTENCE_UNIT);
     }
 
     /**
-     * Run jpa style transaction in functional style
      * Using the default transaction provider
      *
      * @param transaction transaction to apply
      */
     public static void with(Transaction transaction) {
-        defaultTransaction.with(transaction);
+        get().with(transaction);
     }
 
     /**
@@ -115,7 +109,7 @@ public final class HibernateUtils {
      * @return object
      */
     public static <T> T reduce(ReduceTransaction<T> reduceTransaction) {
-        return defaultTransaction.reduce(reduceTransaction);
+        return get().reduce(reduceTransaction);
     }
 
     /**
@@ -129,11 +123,7 @@ public final class HibernateUtils {
      * @return object
      */
     public static <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
-        return defaultTransaction.optional(optionalTransaction);
-    }
-
-    public static <T, U> Optional<U> mapper(OptionalTransaction<T> optionalTransaction, Function<? super T, ? extends U> mapper) {
-        return defaultTransaction.mapper(optionalTransaction, mapper);
+        return get().optional(optionalTransaction);
     }
 }
 

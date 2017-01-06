@@ -4,9 +4,10 @@ package com.munch.hibernate.utils;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
+ * Transaction provider to run lambda function in JPA style
+ * <p>
  * Created by Fuxing
  * Date: 8/7/2015
  * Time: 4:07 PM
@@ -16,22 +17,41 @@ public class TransactionProvider {
 
     private EntityManagerFactory factory;
 
+    /**
+     * @param factory for provider to create entity manager
+     */
     public TransactionProvider(EntityManagerFactory factory) {
         this.factory = factory;
     }
 
+    /**
+     * @return provided EntityFactoryFactory
+     */
     public EntityManagerFactory getFactory() {
         return factory;
     }
 
+    /**
+     * @return boolean indicating whether the provider is open
+     */
+    public boolean isOpen() {
+        return getFactory().isOpen();
+    }
+
+    /**
+     * Run JPA style transaction in lambda
+     *
+     * @param transaction transaction lambda
+     */
     public void with(Transaction transaction) {
         with(transaction, transaction);
     }
 
     /**
-     * Run jpa style transaction in functional style
+     * Run JPA style transaction in lambda
      *
-     * @param transaction transaction to apply
+     * @param transaction transaction lambda
+     * @param error       error lambda to run if error is thrown
      */
     public void with(Transaction transaction, TransactionError error) {
         // Create and start
@@ -56,14 +76,22 @@ public class TransactionProvider {
         }
     }
 
+    /**
+     * Run JPA style transaction in functional style with reduce
+     *
+     * @param reduceTransaction reduce transaction to apply
+     * @param <T>               type of object
+     * @return object
+     */
     public <T> T reduce(ReduceTransaction<T> reduceTransaction) {
         return reduce(reduceTransaction, reduceTransaction);
     }
 
     /**
-     * Run jpa style transaction in functional style with reduce
+     * Run JPA style transaction in functional style with reduce
      *
      * @param reduceTransaction reduce transaction to apply
+     * @param error             error lambda to run if error is thrown
      * @param <T>               type of object
      * @return object
      */
@@ -92,7 +120,16 @@ public class TransactionProvider {
         return object;
     }
 
-
+    /**
+     * Run jpa style transaction in functional style with optional transaction
+     * Optional Transaction are basically reduce transaction that will
+     * catch NoResultException and convert it to Optional.empty()
+     * Using the default transaction provider
+     *
+     * @param optionalTransaction reduce transaction to apply that with convert to optional
+     * @param <T>                 type of object
+     * @return object
+     */
     public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
         return reduce(optionalTransaction::optional, optionalTransaction);
     }
@@ -104,18 +141,11 @@ public class TransactionProvider {
      * Using the default transaction provider
      *
      * @param optionalTransaction reduce transaction to apply that with convert to optional
+     * @param error               lambda to run if error is thrown
      * @param <T>                 type of object
      * @return object
      */
     public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction, TransactionError error) {
         return reduce(optionalTransaction::optional, error);
-    }
-
-    public <T, U> Optional<U> mapper(OptionalTransaction<T> optionalTransaction, Function<? super T, ? extends U> mapper) {
-        return reduce(em -> optionalTransaction.optional(em).map(mapper), optionalTransaction);
-    }
-
-    public <T, U> Optional<U> mapper(OptionalTransaction<T> optionalTransaction, TransactionError error, Function<? super T, ? extends U> mapper) {
-        return reduce(em -> optionalTransaction.optional(em).map(mapper), error);
     }
 }
