@@ -23,22 +23,27 @@ public final class HibernateUtils {
 
     /**
      * @param properties nullable properties for overriding
+     * @return created TransactionProvider
      */
-    public static void setupFactory(Map<String, String> properties) {
-        setupFactory(DEFAULT_PERSISTENCE_UNIT, properties);
+    public static TransactionProvider setupFactory(Map<String, String> properties) {
+        return setupFactory(DEFAULT_PERSISTENCE_UNIT, properties);
     }
 
     /**
      * @param unitName   persistence unit name
      * @param properties nullable properties for overriding
+     * @return created TransactionProvider
      */
-    public static void setupFactory(String unitName, Map<String, String> properties) {
+    public static TransactionProvider setupFactory(String unitName, Map<String, String> properties) {
         if (!providers.containsKey(unitName)) {
             synchronized (HibernateUtils.class) {
                 if (!providers.containsKey(unitName)) {
+                    // Setup Factory & Provider
                     EntityManagerFactory factory = Persistence.createEntityManagerFactory(unitName, properties);
-                    providers.put(unitName, new TransactionProvider(factory));
-                    return;
+                    TransactionProvider provider = new TransactionProvider(factory);
+                    // Put to Map
+                    providers.put(unitName, provider);
+                    return provider;
                 }
             }
         }
