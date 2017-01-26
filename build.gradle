@@ -57,6 +57,10 @@ allprojects {
     }
 }
 
+configure(subprojects.findAll { it.name.matches("munch-block(|-.+)") }) {
+    version '1.0'
+}
+
 dependencies {
     // Basic
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
