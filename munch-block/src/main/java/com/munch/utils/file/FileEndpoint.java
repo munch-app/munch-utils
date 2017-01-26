@@ -8,6 +8,10 @@ package com.munch.utils.file;
  */
 public interface FileEndpoint {
 
+    /**
+     * @param key file key
+     * @return public url of the file
+     */
     String getUrl(String key);
 
 }
