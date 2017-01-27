@@ -23,6 +23,14 @@ public class AwsFileEndpoint implements FileEndpoint {
     }
 
     /**
+     * @param regionName AWS Region in string
+     * @param bucket     bucket where files resides
+     */
+    public AwsFileEndpoint(String regionName, String bucket) {
+        this(Regions.fromName(regionName), bucket);
+    }
+
+    /**
      * @param key file key
      * @return statically constructed url without fetching from live server
      */
