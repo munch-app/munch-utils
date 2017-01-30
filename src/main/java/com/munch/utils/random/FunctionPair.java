@@ -9,17 +9,17 @@ package com.munch.utils.random;
 public class FunctionPair {
 
     public final Integer left;
-    public final RandomFunction.Function right;
+    public final Function right;
 
-    public static FunctionPair of(Integer left, RandomFunction.Function right) {
+    public static FunctionPair of(int left, Function right) {
         return new FunctionPair(left, right);
     }
 
-    public static <T> ReduceFunctionPair<T> reduce(Integer left, RandomFunction.ReduceFunction<T> right) {
+    public static <T> ReduceFunctionPair<T> reduce(int left, ReduceFunctionPair.ReduceFunction<T> right) {
         return new ReduceFunctionPair<>(left, right);
     }
 
-    public FunctionPair(Integer left, RandomFunction.Function right) {
+    public FunctionPair(int left, Function right) {
         this.left = left;
         this.right = right;
     }
@@ -28,7 +28,12 @@ public class FunctionPair {
         return left;
     }
 
-    public RandomFunction.Function getRight() {
+    public Function getRight() {
         return right;
+    }
+
+    @FunctionalInterface
+    public interface Function {
+        void run(int chance);
     }
 }

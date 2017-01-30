@@ -1,72 +1,68 @@
 package com.munch.utils.random;
 
-import org.apache.commons.lang3.RandomUtils;
-
-import java.util.Arrays;
-
 /**
- * Created by Fuxing
- * Date: 27/6/2015
- * Time: 11:38 AM
- * Project: PuffinCore
+ * Created by: Fuxing
+ * Date: 30/1/2017
+ * Time: 4:16 AM
+ * Project: munch-utils
  */
-public class RandomFunction extends RandomUtils {
+@FunctionalInterface
+public interface RandomFunction extends RandomReduce<Void> {
 
-    public static void random(Function... functions) {
-        int random = nextInt(0, functions.length);
-        functions[random].run(1);
+    /**
+     * Chance is calculated by total sum of chance of all function slated to run
+     *
+     * @return chance of which the random function will run
+     */
+    default long chance() {
+        return 1;
     }
 
-    public static <T> T randomReduce(ReduceFunction<T>... functions) {
-        int random = nextInt(0, functions.length);
-        return functions[random].run(1);
+    /**
+     * Run when random hits
+     */
+    void run();
+
+    /**
+     * Overrides with default for cross compatibility with reduce func
+     *
+     * @return Void
+     */
+    default Void reduce() {
+        run();
+        return null;
     }
 
-    public static void random(FunctionPair... functionPair) {
-        int totalRandom = Arrays.stream(functionPair).mapToInt(FunctionPair::getLeft).sum();
-        int random = nextInt(0, totalRandom);
-        int covered = 0;
-        for (FunctionPair pair : functionPair) {
-            if (covered <= random && random < covered + pair.getLeft()) {
-                pair.getRight().run(pair.getLeft());
-                break;
-            }
-            covered += pair.getLeft();
+    /**
+     * @param chance chance or biases of random
+     * @param function reduce function
+     * @return RandomFunction with override bias
+     */
+    static RandomFunction of(long chance, RandomFunction function) {
+        return new RandomFunction.Default(chance, function);
+    }
+
+    /**
+     * Default implementation with chance and function initialization
+     */
+    class Default implements RandomFunction {
+
+        private final long chance;
+        private final RandomFunction function;
+
+        public Default(long chance, RandomFunction function) {
+            this.chance = chance;
+            this.function = function;
         }
-        // find array to get
-    }
 
-    public static <T> T randomReduce(ReduceFunctionPair<T>... functionPair) {
-        int totalRandom = Arrays.stream(functionPair).mapToInt(ReduceFunctionPair::getLeft).sum();
-        int random = nextInt(0, totalRandom);
-        int covered = 0;
-
-        T reduce = null;
-        for (ReduceFunctionPair<T> pair : functionPair) {
-            if (covered <= random && random < covered + pair.getLeft()) {
-                reduce = pair.getRight().run(pair.getLeft());
-                break;
-            }
-            covered += pair.getLeft();
+        @Override
+        public long chance() {
+            return chance;
         }
-        return reduce;
-    }
 
-    public static FunctionPair pair(Integer left, RandomFunction.Function right) {
-        return new FunctionPair(left, right);
-    }
-
-    public static <T> ReduceFunctionPair<T> reducePair(Integer left, RandomFunction.ReduceFunction<T> right) {
-        return new ReduceFunctionPair<>(left, right);
-    }
-
-    @FunctionalInterface
-    public interface Function {
-        void run(int chance);
-    }
-
-    @FunctionalInterface
-    public interface ReduceFunction<T> {
-        T run(int chance);
+        @Override
+        public void run() {
+            function.run();
+        }
     }
 }

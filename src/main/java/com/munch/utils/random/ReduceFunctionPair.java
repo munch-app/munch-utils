@@ -8,13 +8,13 @@ package com.munch.utils.random;
  */
 public class ReduceFunctionPair<T> {
     public final Integer left;
-    public final RandomFunction.ReduceFunction<T> right;
+    public final ReduceFunction<T> right;
 
-    public static <T> ReduceFunctionPair<T> of(Integer left, RandomFunction.ReduceFunction<T> right) {
+    public static <T> ReduceFunctionPair<T> of(Integer left, ReduceFunction<T> right) {
         return new ReduceFunctionPair<>(left, right);
     }
 
-    public ReduceFunctionPair(Integer left, RandomFunction.ReduceFunction<T> right) {
+    public ReduceFunctionPair(Integer left, ReduceFunction<T> right) {
         this.left = left;
         this.right = right;
     }
@@ -23,8 +23,12 @@ public class ReduceFunctionPair<T> {
         return left;
     }
 
-    public RandomFunction.ReduceFunction<T> getRight() {
+    public ReduceFunction<T> getRight() {
         return right;
     }
 
+    @FunctionalInterface
+    public interface ReduceFunction<T> {
+        T run(int chance);
+    }
 }
