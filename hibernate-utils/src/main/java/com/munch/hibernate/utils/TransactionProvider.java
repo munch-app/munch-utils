@@ -15,12 +15,15 @@ import java.util.Optional;
  */
 public class TransactionProvider {
 
-    private EntityManagerFactory factory;
+    private final String unitName;
+    private final EntityManagerFactory factory;
 
     /**
-     * @param factory for provider to create entity manager
+     * @param unitName unit name of provider
+     * @param factory  for provider to create entity manager
      */
-    public TransactionProvider(EntityManagerFactory factory) {
+    public TransactionProvider(String unitName, EntityManagerFactory factory) {
+        this.unitName = unitName;
         this.factory = factory;
     }
 
@@ -29,6 +32,13 @@ public class TransactionProvider {
      */
     public EntityManagerFactory getFactory() {
         return factory;
+    }
+
+    /**
+     * @return unit name of current provider
+     */
+    public String getUnitName() {
+        return unitName;
     }
 
     /**

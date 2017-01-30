@@ -40,7 +40,7 @@ public final class HibernateUtils {
                 if (!providers.containsKey(unitName)) {
                     // Setup Factory & Provider
                     EntityManagerFactory factory = Persistence.createEntityManagerFactory(unitName, properties);
-                    TransactionProvider provider = new TransactionProvider(factory);
+                    TransactionProvider provider = new TransactionProvider(unitName, factory);
                     // Put to Map
                     providers.put(unitName, provider);
                     return provider;
