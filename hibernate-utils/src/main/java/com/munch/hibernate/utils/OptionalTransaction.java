@@ -38,7 +38,7 @@ public interface OptionalTransaction<T> extends Function<EntityManager, T>, Tran
      */
     default Optional<T> optional(EntityManager em) {
         try {
-            return Optional.of(apply(em));
+            return Optional.ofNullable(apply(em));
         } catch (NoResultException e) {
             return Optional.empty();
         }
