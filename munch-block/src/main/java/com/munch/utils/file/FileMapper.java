@@ -2,6 +2,7 @@ package com.munch.utils.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Created by: Fuxing
@@ -12,12 +13,34 @@ import java.io.IOException;
 public interface FileMapper extends FileEndpoint {
 
     /**
+     * @param key         file key
+     * @param file        file to put
+     * @param contentType content type
+     * @param control     access control type
+     */
+    void put(String key, File file, String contentType, AccessControl control);
+
+    /**
+     * @param key         file key
+     * @param inputStream stream of data
+     * @param length      length of content in bytes
+     * @param contentType content type
+     * @param control     access control type
+     */
+    void put(String key, InputStream inputStream, long length, String contentType, AccessControl control);
+
+    /**
+     * This method will auto parse object content and put the correct metadata
+     *
      * @param key     file key
      * @param file    file to put
      * @param control access control type
      * @throws ContentTypeError content type parsing error
+     * @see FileTypeUtils
      */
-    void put(String key, File file, AccessControl control) throws ContentTypeError;
+    default void put(String key, File file, AccessControl control) throws ContentTypeError {
+        put(key, file, getContentType(key, file), control);
+    }
 
     /**
      * @param key  file key

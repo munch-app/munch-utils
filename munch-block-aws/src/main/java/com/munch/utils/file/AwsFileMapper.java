@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Aws Implementation of FileMapper
@@ -41,29 +42,53 @@ public class AwsFileMapper implements FileMapper {
     }
 
     /**
-     * This method will auto parse object content and put the correct metadata
-     *
-     * @param key     put file with key
-     * @param file    the file
-     * @param control access control type
-     * @throws ContentTypeError failed content parsing
-     * @see FileTypeUtils
+     * @param key         file key
+     * @param file        file to put
+     * @param contentType content type
+     * @param control     access control type
      */
     @Override
-    public void put(String key, File file, AccessControl control) throws ContentTypeError {
+    public void put(String key, File file, String contentType, AccessControl control) {
         ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType(FileMapper.getContentType(key, file));
+        metadata.setContentType(contentType);
         metadata.setContentDisposition("inline"); // For Browser to display
 
+        // Create request and put object
         PutObjectRequest request = new PutObjectRequest(getBucket(), key, file);
-        request.withMetadata(metadata);
+        request.setMetadata(metadata);
+        put(request, control);
+    }
 
+    /**
+     * @param key         file key
+     * @param inputStream stream of data
+     * @param length      length of content in bytes
+     * @param contentType content type
+     * @param control     access control type
+     */
+    @Override
+    public void put(String key, InputStream inputStream, long length, String contentType, AccessControl control) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(contentType);
+        metadata.setContentLength(length);
+        metadata.setContentDisposition("inline"); // For Browser to display
+
+        // Create request and put object
+        PutObjectRequest request = new PutObjectRequest(getBucket(), key, inputStream, metadata);
+        put(request, control);
+    }
+
+    /**
+     * @param request object request
+     * @param control access control
+     */
+    private void put(PutObjectRequest request, AccessControl control) {
         switch (control) {
             case Private:
-                request.withCannedAcl(CannedAccessControlList.Private);
+                request.setCannedAcl(CannedAccessControlList.Private);
                 break;
             case PublicRead:
-                request.withCannedAcl(CannedAccessControlList.PublicRead);
+                request.setCannedAcl(CannedAccessControlList.PublicRead);
                 break;
         }
 
