@@ -1,9 +1,10 @@
 package com.munch.utils.file;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.S3ClientOptions;
 
 /**
  * Created By: Fuxing Loh
@@ -18,14 +19,14 @@ public class FakeS3Utils {
      * @return Amazon S3 Client
      */
     public static AmazonS3 createClient(String endpoint) {
-        AmazonS3 amazonS3 = new AmazonS3Client(new BasicAWSCredentials("foo", "bar"));
-        amazonS3.setEndpoint(endpoint);
-        amazonS3.setS3ClientOptions(S3ClientOptions.builder()
-                .setPathStyleAccess(true)
+        return AmazonS3Client.builder()
+                .withCredentials(
+                        new AWSStaticCredentialsProvider(new BasicAWSCredentials("foo", "bar"))
+                ).withEndpointConfiguration(
+                        new AwsClientBuilder.EndpointConfiguration(endpoint, "us-west-2")
+                ).withPathStyleAccessEnabled(true)
                 .disableChunkedEncoding()
-                .build()
-        );
-        return amazonS3;
+                .build();
     }
 
 }
