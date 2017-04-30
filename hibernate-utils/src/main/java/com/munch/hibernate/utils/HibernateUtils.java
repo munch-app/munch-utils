@@ -91,10 +91,10 @@ public final class HibernateUtils {
      * @param unitName persistence unit name
      * @return ReadOnlyProvider of unit, null if don't exist
      */
-    public static ReadOnlyProvider readOnly(String unitName) {
+    public static ReadProvider readOnly(String unitName) {
         EntityManagerFactory factory = factories.get(unitName);
         if (factory == null) return null;
-        return new ReadOnlyProvider(unitName, factory);
+        return new ReadProvider(unitName, factory);
     }
 
     /**
@@ -107,7 +107,7 @@ public final class HibernateUtils {
     /**
      * @return default ReadOnlyProvider
      */
-    public static ReadOnlyProvider readOnly() {
+    public static ReadProvider readOnly() {
         return readOnly(DEFAULT_PERSISTENCE_UNIT);
     }
 }

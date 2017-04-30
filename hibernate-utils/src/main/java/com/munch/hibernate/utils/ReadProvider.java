@@ -10,13 +10,13 @@ import java.util.Optional;
  * Time: 3:36 AM
  * Project: munch-utils
  */
-public class ReadOnlyProvider extends Provider {
+public class ReadProvider extends Provider {
 
     /**
      * @param unitName unit name of provider
      * @param factory  for provider to create entity manager
      */
-    public ReadOnlyProvider(String unitName, EntityManagerFactory factory) {
+    public ReadProvider(String unitName, EntityManagerFactory factory) {
         super(unitName, factory);
     }
 
