@@ -4,7 +4,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Thread-Safe Singleton Hibernate Util
@@ -17,7 +16,7 @@ import java.util.Optional;
 public final class HibernateUtils {
     public static final String DEFAULT_PERSISTENCE_UNIT = "defaultPersistenceUnit";
 
-    private static Map<String, TransactionProvider> providers = new HashMap<>();
+    private static Map<String, EntityManagerFactory> factories = new HashMap<>();
 
     private HibernateUtils() {/* NOT Suppose to init */}
 
@@ -25,8 +24,8 @@ public final class HibernateUtils {
      * @param properties nullable properties for overriding
      * @return created TransactionProvider
      */
-    public static TransactionProvider setupFactory(Map<String, String> properties) {
-        return setupFactory(DEFAULT_PERSISTENCE_UNIT, properties);
+    public static void setupFactory(Map<String, String> properties) {
+        setupFactory(DEFAULT_PERSISTENCE_UNIT, properties);
     }
 
     /**
@@ -34,16 +33,13 @@ public final class HibernateUtils {
      * @param properties nullable properties for overriding
      * @return created TransactionProvider
      */
-    public static TransactionProvider setupFactory(String unitName, Map<String, String> properties) {
-        if (!providers.containsKey(unitName)) {
+    public static void setupFactory(String unitName, Map<String, String> properties) {
+        if (!factories.containsKey(unitName)) {
             synchronized (HibernateUtils.class) {
-                if (!providers.containsKey(unitName)) {
-                    // Setup Factory & Provider
-                    EntityManagerFactory factory = Persistence.createEntityManagerFactory(unitName, properties);
-                    TransactionProvider provider = new TransactionProvider(unitName, factory);
-                    // Put to Map
-                    providers.put(unitName, provider);
-                    return provider;
+                if (!factories.containsKey(unitName)) {
+                    // Setup Factory & put to map
+                    factories.put(unitName, Persistence.createEntityManagerFactory(unitName, properties));
+                    return;
                 }
             }
         }
@@ -63,10 +59,10 @@ public final class HibernateUtils {
      * Thread-safe
      */
     public static void shutdown(String unitName) {
-        if (providers.containsKey(unitName)) {
+        if (factories.containsKey(unitName)) {
             synchronized (HibernateUtils.class) {
-                if (providers.containsKey(unitName)) {
-                    providers.remove(unitName).getFactory().close();
+                if (factories.containsKey(unitName)) {
+                    factories.remove(unitName).close();
                 }
             }
         }
@@ -76,7 +72,7 @@ public final class HibernateUtils {
      * Shutdown all factory
      */
     public static void shutdownAll() {
-        for (String unitName : providers.keySet()) {
+        for (String unitName : factories.keySet()) {
             shutdown(unitName);
         }
     }
@@ -86,7 +82,19 @@ public final class HibernateUtils {
      * @return TransactionProvider of unit, null if don't exist
      */
     public static TransactionProvider get(String unitName) {
-        return providers.get(unitName);
+        EntityManagerFactory factory = factories.get(unitName);
+        if (factory == null) return null;
+        return new TransactionProvider(unitName, factory);
+    }
+
+    /**
+     * @param unitName persistence unit name
+     * @return ReadOnlyProvider of unit, null if don't exist
+     */
+    public static ReadOnlyProvider readOnly(String unitName) {
+        EntityManagerFactory factory = factories.get(unitName);
+        if (factory == null) return null;
+        return new ReadOnlyProvider(unitName, factory);
     }
 
     /**
@@ -97,38 +105,9 @@ public final class HibernateUtils {
     }
 
     /**
-     * Using the default transaction provider
-     *
-     * @param transaction transaction to apply
+     * @return default ReadOnlyProvider
      */
-    public static void with(Transaction transaction) {
-        get().with(transaction);
-    }
-
-    /**
-     * Run jpa style transaction in functional style with reduce
-     * Using the default transaction provider
-     *
-     * @param reduceTransaction reduce transaction to apply
-     * @param <T>               type of object
-     * @return object
-     */
-    public static <T> T reduce(ReduceTransaction<T> reduceTransaction) {
-        return get().reduce(reduceTransaction);
-    }
-
-    /**
-     * Run jpa style transaction in functional style with optional transaction
-     * Optional Transaction are basically reduce transaction that will
-     * catch NoResultException and convert it to Optional.empty()
-     * Using the default transaction provider
-     *
-     * @param optionalTransaction reduce transaction to apply that with convert to optional
-     * @param <T>                 type of object
-     * @return object
-     */
-    public static <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
-        return get().optional(optionalTransaction);
+    public static ReadOnlyProvider readOnly() {
+        return readOnly(DEFAULT_PERSISTENCE_UNIT);
     }
 }
-

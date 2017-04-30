@@ -1,4 +1,3 @@
-
 package com.munch.hibernate.utils;
 
 import javax.persistence.EntityManager;
@@ -6,20 +5,18 @@ import javax.persistence.EntityManagerFactory;
 import java.util.Optional;
 
 /**
- * Transaction provider to run lambda function in JPA style
- * <p>
- * Created by Fuxing
- * Date: 8/7/2015
- * Time: 4:07 PM
- * Project: PuffinCore
+ * Created by: Fuxing
+ * Date: 1/5/2017
+ * Time: 3:36 AM
+ * Project: munch-utils
  */
-public class TransactionProvider extends Provider {
+public class ReadOnlyProvider extends Provider {
 
     /**
      * @param unitName unit name of provider
      * @param factory  for provider to create entity manager
      */
-    public TransactionProvider(String unitName, EntityManagerFactory factory) {
+    public ReadOnlyProvider(String unitName, EntityManagerFactory factory) {
         super(unitName, factory);
     }
 
@@ -42,16 +39,8 @@ public class TransactionProvider extends Provider {
         // Create and start
         EntityManager entityManager = factory.createEntityManager();
         try {
-            entityManager.getTransaction().begin();
-            // Run
             transaction.accept(entityManager);
-            // Close
-            entityManager.getTransaction().commit();
         } catch (Exception e) {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-
             // Transaction Error
             if (error.error(e)) {
                 throw e;
@@ -85,16 +74,8 @@ public class TransactionProvider extends Provider {
         // Create and start
         EntityManager entityManager = factory.createEntityManager();
         try {
-            entityManager.getTransaction().begin();
-            // Run
             object = reduceTransaction.apply(entityManager);
-            // Close
-            entityManager.getTransaction().commit();
         } catch (Exception e) {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-
             // Transaction Error
             if (error.error(e)) {
                 throw e;
@@ -133,4 +114,5 @@ public class TransactionProvider extends Provider {
     public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction, TransactionError error) {
         return reduce(optionalTransaction::optional, error);
     }
+
 }
