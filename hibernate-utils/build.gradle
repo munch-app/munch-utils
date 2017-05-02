@@ -1,4 +1,4 @@
-version '5.0.11.Final.2'
+version '5.0.11.Final.3'
 
 dependencies {
     compile group: 'org.hibernate', name: 'hibernate-core', version: '5.0.11.Final'

@@ -3,7 +3,11 @@ package com.munch.hibernate.utils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Transaction provider to run lambda function in JPA style
@@ -13,96 +17,61 @@ import java.util.Optional;
  * Time: 4:07 PM
  * Project: PuffinCore
  */
-public class TransactionProvider extends Provider {
+public class TransactionProvider {
+    public static final String HINT_READ_ONLY = "org.hibernate.readOnly";
+
+    protected final String unitName;
+    protected final EntityManagerFactory factory;
 
     /**
      * @param unitName unit name of provider
      * @param factory  for provider to create entity manager
      */
     public TransactionProvider(String unitName, EntityManagerFactory factory) {
-        super(unitName, factory);
+        this.unitName = unitName;
+        this.factory = factory;
+    }
+
+    /**
+     * @return provided EntityFactoryFactory
+     */
+    public EntityManagerFactory getFactory() {
+        return factory;
+    }
+
+    /**
+     * @return unit name of current provider
+     */
+    public String getUnitName() {
+        return unitName;
+    }
+
+    /**
+     * @return boolean indicating whether the provider is open
+     */
+    public boolean isOpen() {
+        return getFactory().isOpen();
     }
 
     /**
      * Run JPA style transaction in lambda
      *
-     * @param transaction transaction lambda
+     * @param consumer transaction lambda
      */
-    public void with(Transaction transaction) {
-        with(transaction, transaction);
+    public void with(Consumer<EntityManager> consumer) {
+        with(false, consumer);
     }
 
     /**
      * Run JPA style transaction in lambda
      *
-     * @param transaction transaction lambda
-     * @param error       error lambda to run if error is thrown
+     * @param consumer transaction lambda
      */
-    public void with(Transaction transaction, TransactionError error) {
-        // Create and start
-        EntityManager entityManager = factory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            // Run
-            transaction.accept(entityManager);
-            // Close
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-
-            // Transaction Error
-            if (error.error(e)) {
-                throw e;
-            }
-        } finally {
-            entityManager.close();
-        }
-    }
-
-    /**
-     * Run JPA style transaction in functional style with reduce
-     *
-     * @param reduceTransaction reduce transaction to apply
-     * @param <T>               type of object
-     * @return object
-     */
-    public <T> T reduce(ReduceTransaction<T> reduceTransaction) {
-        return reduce(reduceTransaction, reduceTransaction);
-    }
-
-    /**
-     * Run JPA style transaction in functional style with reduce
-     *
-     * @param reduceTransaction reduce transaction to apply
-     * @param error             error lambda to run if error is thrown
-     * @param <T>               type of object
-     * @return object
-     */
-    public <T> T reduce(ReduceTransaction<T> reduceTransaction, TransactionError error) {
-        T object = null;
-        // Create and start
-        EntityManager entityManager = factory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            // Run
-            object = reduceTransaction.apply(entityManager);
-            // Close
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-
-            // Transaction Error
-            if (error.error(e)) {
-                throw e;
-            }
-        } finally {
-            entityManager.close();
-        }
-        return object;
+    public void with(boolean readOnly, Consumer<EntityManager> consumer) {
+        with(readOnly, em -> {
+            consumer.accept(em);
+            return null;
+        });
     }
 
     /**
@@ -111,12 +80,12 @@ public class TransactionProvider extends Provider {
      * catch NoResultException and convert it to Optional.empty()
      * Using the default transaction provider
      *
-     * @param optionalTransaction reduce transaction to apply that with convert to optional
-     * @param <T>                 type of object
+     * @param function reduce transaction to apply that with convert to optional
+     * @param <T>      type of object
      * @return object
      */
-    public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction) {
-        return reduce(optionalTransaction::optional, optionalTransaction);
+    public <T> Optional<T> optional(Function<EntityManager, T> function) {
+        return optional(false, function);
     }
 
     /**
@@ -125,12 +94,71 @@ public class TransactionProvider extends Provider {
      * catch NoResultException and convert it to Optional.empty()
      * Using the default transaction provider
      *
-     * @param optionalTransaction reduce transaction to apply that with convert to optional
-     * @param error               lambda to run if error is thrown
-     * @param <T>                 type of object
+     * @param function reduce transaction to apply that with convert to optional
+     * @param <T>      type of object
+     * @return result
+     */
+    public <T> Optional<T> optional(boolean readOnly, Function<EntityManager, T> function) {
+        try {
+            return Optional.ofNullable(with(readOnly, function));
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Run JPA style transaction in functional style with reduce
+     *
+     * @param function reduce transaction to apply
+     * @param <T>      type of object
      * @return object
      */
-    public <T> Optional<T> optional(OptionalTransaction<T> optionalTransaction, TransactionError error) {
-        return reduce(optionalTransaction::optional, error);
+    public <T> T with(Function<EntityManager, T> function) {
+        return with(false, function);
+    }
+
+    /**
+     * Run JPA style transaction in functional style with reduce
+     *
+     * @param function reduce transaction to apply
+     * @param <T>      type of object
+     * @return object
+     */
+    public <T> T with(boolean readOnly, Function<EntityManager, T> function) {
+        EntityManager entityManager = null;
+        EntityTransaction transaction = null;
+
+        try {
+            entityManager = factory.createEntityManager();
+            entityManager.setProperty(HINT_READ_ONLY, readOnly);
+
+            if (!readOnly) {
+                transaction = entityManager.getTransaction();
+                transaction.begin();
+            }
+
+            T result = function.apply(entityManager);
+
+            if (transaction != null) {
+                if (transaction.getRollbackOnly()) {
+                    transaction.rollback();
+                } else {
+                    transaction.commit();
+                }
+            }
+
+            return result;
+        } catch (Throwable t) {
+            if (transaction != null) {
+                try {
+                    transaction.rollback();
+                } catch (Throwable ignored) {/**/}
+            }
+            throw t;
+        } finally {
+            if (entityManager != null) {
+                entityManager.close();
+            }
+        }
     }
 }
