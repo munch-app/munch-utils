@@ -68,7 +68,7 @@ public class TransactionProvider {
      * @param consumer transaction lambda
      */
     public void with(boolean readOnly, Consumer<EntityManager> consumer) {
-        with(readOnly, em -> {
+        reduce(readOnly, em -> {
             consumer.accept(em);
             return null;
         });
@@ -100,7 +100,7 @@ public class TransactionProvider {
      */
     public <T> Optional<T> optional(boolean readOnly, Function<EntityManager, T> function) {
         try {
-            return Optional.ofNullable(with(readOnly, function));
+            return Optional.ofNullable(reduce(readOnly, function));
         } catch (NoResultException e) {
             return Optional.empty();
         }
@@ -113,8 +113,8 @@ public class TransactionProvider {
      * @param <T>      type of object
      * @return object
      */
-    public <T> T with(Function<EntityManager, T> function) {
-        return with(false, function);
+    public <T> T reduce(Function<EntityManager, T> function) {
+        return reduce(false, function);
     }
 
     /**
@@ -124,7 +124,7 @@ public class TransactionProvider {
      * @param <T>      type of object
      * @return object
      */
-    public <T> T with(boolean readOnly, Function<EntityManager, T> function) {
+    public <T> T reduce(boolean readOnly, Function<EntityManager, T> function) {
         EntityManager entityManager = null;
         EntityTransaction transaction = null;
 
