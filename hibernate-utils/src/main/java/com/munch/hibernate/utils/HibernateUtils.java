@@ -24,8 +24,8 @@ public final class HibernateUtils {
      * @param properties nullable properties for overriding
      * @return created TransactionProvider
      */
-    public static void setupFactory(Map<String, String> properties) {
-        setupFactory(DEFAULT_PERSISTENCE_UNIT, properties);
+    public static TransactionProvider setupFactory(Map<String, String> properties) {
+        return setupFactory(DEFAULT_PERSISTENCE_UNIT, properties);
     }
 
     /**
@@ -33,13 +33,14 @@ public final class HibernateUtils {
      * @param properties nullable properties for overriding
      * @return created TransactionProvider
      */
-    public static void setupFactory(String unitName, Map<String, String> properties) {
+    public static TransactionProvider setupFactory(String unitName, Map<String, String> properties) {
         if (!factories.containsKey(unitName)) {
             synchronized (HibernateUtils.class) {
                 if (!factories.containsKey(unitName)) {
                     // Setup Factory & put to map
-                    factories.put(unitName, Persistence.createEntityManagerFactory(unitName, properties));
-                    return;
+                    EntityManagerFactory factory = Persistence.createEntityManagerFactory(unitName, properties);
+                    factories.put(unitName, factory);
+                    return new TransactionProvider(unitName, factory);
                 }
             }
         }

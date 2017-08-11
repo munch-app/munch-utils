@@ -5,25 +5,10 @@ allprojects {
     apply plugin: 'maven-publish'
 
     group 'com.munch'
-    version '1.0.0-SNAPSHOT'
 
-    repositories {
-        maven {
-            url 'http://artifactory.fxloh.com/artifactory/plugins-release'
-            credentials {
-                username = "${artifactory_user}"
-                password = "${artifactory_password}"
-            }
-        }
-        mavenCentral()
-        maven {
-            credentials {
-                username = "${artifactory_user}"
-                password = "${artifactory_password}"
-            }
-            url "http://artifactory.fxloh.com/artifactory/munch"
-        }
-    }
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    compileJava.options.encoding = 'UTF-8'
 
     task sourcesJar(type: Jar, dependsOn: classes) {
         classifier = 'sources'
@@ -46,9 +31,15 @@ allprojects {
     }
 
     dependencies {
-        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.0-M3'
+        testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.0-M4'
         testCompile group: 'org.easytesting', name: 'fest-assert', version: '1.4'
+
+        compile group: 'com.google.code.findbugs', name: 'annotations', version: '3.0.1u2'
     }
+}
+
+configure(subprojects.findAll { it.name.matches("munch-block(|-.+)") }) {
+    version '1.0.5'
 
     task publishLib {
         dependsOn 'build'
@@ -57,19 +48,14 @@ allprojects {
     }
 }
 
-configure(subprojects.findAll { it.name.matches("munch-block(|-.+)") }) {
-    version '1.0.5'
-}
-
 dependencies {
-    // Basic
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
 }
 
 buildscript {
     repositories {
         maven {
-            url 'http://artifactory.fxloh.com/artifactory/plugins-release'
+            url 'http://artifactory.fxloh.com/artifactory/munch-repos'
             credentials {
                 username = "${artifactory_user}"
                 password = "${artifactory_password}"
@@ -81,15 +67,15 @@ buildscript {
     }
 }
 
+// https://www.jfrog.com/confluence/display/RTF/Gradle+Artifactory+Plugin
 artifactory {
-    contextUrl = "${artifactory_contextUrl}"   //The base Artifactory URL if not overridden by the publisher/resolver
+    contextUrl = "${artifactory_contextUrl}"
     publish {
         repository {
-            repoKey = 'munch'
+            repoKey = "munch-${project.version.endsWith('-SNAPSHOT') ? 'snapshot' : 'release'}"
             username = "${artifactory_user}"
             password = "${artifactory_password}"
             maven = true
-
         }
         defaults {
             publications('mavenJava')
@@ -97,11 +83,10 @@ artifactory {
     }
     resolve {
         repository {
-            repoKey = 'libs-release'
+            repoKey = 'munch-repos'
             username = "${artifactory_user}"
             password = "${artifactory_password}"
             maven = true
-
         }
     }
 }

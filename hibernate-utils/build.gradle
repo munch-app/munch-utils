@@ -1,6 +1,12 @@
-version '5.0.11.Final.3'
+version '5.0.11.Final.4'
 
 dependencies {
     compile group: 'org.hibernate', name: 'hibernate-core', version: '5.0.11.Final'
     compile group: 'org.hibernate', name: 'hibernate-entitymanager', version: '5.0.11.Final'
+}
+
+task publishLib {
+    dependsOn 'build'
+    dependsOn 'artifactoryPublish'
+    tasks.findByName('artifactoryPublish').mustRunAfter 'build'
 }
