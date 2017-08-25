@@ -1,8 +1,11 @@
 package com.munch.utils.block;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.munch.utils.file.AccessControl;
 
 import java.util.Iterator;
 
@@ -16,16 +19,43 @@ public class AwsBlockStore implements BlockStore {
 
     protected final String bucketName;
     protected final AmazonS3 amazonS3;
+    protected final AccessControl accessControl;
 
+    /**
+     * Create Aws block store with AccessControl defaulted to private
+     *
+     * @param bucketName bucket name where the block reside
+     * @param amazonS3   amazon s3 client
+     */
     public AwsBlockStore(String bucketName, AmazonS3 amazonS3) {
+        this(bucketName, amazonS3, AccessControl.Private);
+    }
+
+    /**
+     * @param bucketName    bucket name where the block reside
+     * @param amazonS3      amazon s3 client
+     * @param accessControl access control of the object
+     */
+    public AwsBlockStore(String bucketName, AmazonS3 amazonS3, AccessControl accessControl) {
         this.bucketName = bucketName;
         this.amazonS3 = amazonS3;
+        this.accessControl = accessControl;
     }
 
     @Override
     public void save(String key, String content) {
-        amazonS3.putObject(bucketName, key, content);
+        PutObjectRequest request = new PutObjectRequest(bucketName, key, content);
+        switch (accessControl) {
+            case PublicRead:
+                request.setCannedAcl(CannedAccessControlList.PublicRead);
+                break;
+            case Private:
+                request.setCannedAcl(CannedAccessControlList.Private);
+                break;
+        }
+        amazonS3.putObject(request);
     }
+
 
     @Override
     public String load(String key) {
