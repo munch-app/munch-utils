@@ -1,12 +1,12 @@
 package com.munch.utils.block;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.StringUtils;
 import com.munch.utils.file.AccessControl;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Iterator;
 
 /**
@@ -44,7 +44,13 @@ public class AwsBlockStore implements BlockStore {
 
     @Override
     public void save(String key, String content) {
-        PutObjectRequest request = new PutObjectRequest(bucketName, key, content);
+        byte[] contentBytes = content.getBytes(StringUtils.UTF8);
+
+        InputStream is = new ByteArrayInputStream(contentBytes);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType("text/plain");
+        metadata.setContentLength(contentBytes.length);
+        PutObjectRequest request = new PutObjectRequest(bucketName, key, is, metadata);
         switch (accessControl) {
             case PublicRead:
                 request.setCannedAcl(CannedAccessControlList.PublicRead);
