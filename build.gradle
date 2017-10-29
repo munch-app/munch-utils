@@ -39,7 +39,7 @@ allprojects {
 }
 
 configure(subprojects.findAll { it.name.matches("munch-block(|-.+)") }) {
-    version '1.0.7'
+    version '1.0.9'
 
     task publishLib {
         dependsOn 'build'
