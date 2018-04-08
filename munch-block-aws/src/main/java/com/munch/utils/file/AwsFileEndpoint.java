@@ -36,7 +36,7 @@ public class AwsFileEndpoint implements FileEndpoint {
      */
     @Override
     public String getUrl(String key) {
-        return String.format("https://s3-%s.amazonaws.com/%s/%s", region.getName(), bucket, key);
+        return String.format("https://s3.dualstack.%s.amazonaws.com/%s/%s", region.getName(), bucket, key);
     }
 
 }
