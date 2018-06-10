@@ -1,0 +1,18 @@
+version '5.0.11.Final.4'
+
+dependencies {
+    compile project(':hibernate-utils')
+
+    // Postgres
+    compile group: 'org.hibernate', name: 'hibernate-hikaricp', version: '5.0.11.Final'
+    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1212.jre7'
+
+    compileOnly group: 'munch.restful', name: 'restful-core', version: '2.0.2'
+    compileOnly group: 'com.google.inject', name: 'guice', version: '4.2.0'
+}
+
+task publishLib {
+    dependsOn 'build'
+    dependsOn 'artifactoryPublish'
+    tasks.findByName('artifactoryPublish').mustRunAfter 'build'
+}

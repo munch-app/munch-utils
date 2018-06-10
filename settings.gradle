@@ -4,4 +4,5 @@ include 'munch-block'
 include 'munch-block-aws'
 include 'hibernate-utils'
 include 'munch-block-fakes3'
+include 'postgres-utils'
 
