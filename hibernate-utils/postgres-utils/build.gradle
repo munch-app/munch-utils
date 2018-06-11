@@ -1,7 +1,5 @@
-version '5.0.11.Final.4'
-
 dependencies {
-    compile project(':hibernate-utils')
+    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
 
     // Postgres
     compile group: 'org.hibernate', name: 'hibernate-hikaricp', version: '5.0.11.Final'
@@ -9,10 +7,4 @@ dependencies {
 
     compileOnly group: 'munch.restful', name: 'restful-core', version: '2.0.2'
     compileOnly group: 'com.google.inject', name: 'guice', version: '4.2.0'
-}
-
-task publishLib {
-    dependsOn 'build'
-    dependsOn 'artifactoryPublish'
-    tasks.findByName('artifactoryPublish').mustRunAfter 'build'
 }
