@@ -65,10 +65,13 @@ public class AwsBlockStore implements BlockStore {
 
     @Override
     public String load(String key) {
-        if (amazonS3.doesObjectExist(bucketName, key)) {
+        try {
             return amazonS3.getObjectAsString(bucketName, key);
+        } catch (AmazonS3Exception e) {
+            if (e.getStatusCode() == 403) return null;
+            if (e.getStatusCode() == 404) return null;
+            throw e;
         }
-        return null;
     }
 
     @Override

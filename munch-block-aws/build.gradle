@@ -1,6 +1,6 @@
 dependencies {
     compile project(":munch-block")
     // AWS S3
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.221'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: awsVersion
     compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
 }
